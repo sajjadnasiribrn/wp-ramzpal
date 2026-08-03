@@ -23,7 +23,7 @@
 		return createElement(
 			'p',
 			{ className: 'ramzpal-block-description' },
-			decode( settings.description || 'پرداخت امن با USDT روی شبکه BEP20' )
+			decode( settings.description || 'مبلغ سفارش را با تتر و از طریق درگاه رمزپال پرداخت کنید.' )
 		);
 	};
 

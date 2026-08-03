@@ -51,7 +51,7 @@ if ( class_exists( 'WC_Payment_Gateway' ) && ! class_exists( 'WC_Gateway_Ramzpal
 		public function __construct() {
 			$this->id                 = 'ramzpal';
 			$this->method_title       = __( 'رمزپال', 'ramzpal-payment-gateway-for-woocommerce' );
-			$this->method_description = __( 'دریافت تتر (USDT) روی شبکه BEP20 با درگاه پرداخت رمزپال.', 'ramzpal-payment-gateway-for-woocommerce' );
+			$this->method_description = __( 'با رمزپال، پرداخت با تتر را به فروشگاه ووکامرسی خود اضافه کنید.', 'ramzpal-payment-gateway-for-woocommerce' );
 			$this->icon               = apply_filters( 'ramzpal_wc_gateway_icon', RAMZPAL_WC_URL . 'assets/images/ramzpal-logo.webp' );
 			$this->has_fields         = false;
 			$this->supports           = array( 'products' );
@@ -60,7 +60,7 @@ if ( class_exists( 'WC_Payment_Gateway' ) && ! class_exists( 'WC_Gateway_Ramzpal
 			$this->init_settings();
 
 			$this->title             = $this->get_option( 'title', __( 'پرداخت با تتر (رمزپال)', 'ramzpal-payment-gateway-for-woocommerce' ) );
-			$this->description       = $this->get_option( 'description', __( 'پرداخت امن با USDT روی شبکه BEP20؛ مبلغ و وضعیت تراکنش پیش از ثبت سفارش تأیید می‌شود.', 'ramzpal-payment-gateway-for-woocommerce' ) );
+			$this->description       = $this->get_option( 'description', __( 'مبلغ سفارش را با تتر و از طریق درگاه رمزپال پرداخت کنید.', 'ramzpal-payment-gateway-for-woocommerce' ) );
 			$this->enabled           = $this->get_option( 'enabled', 'no' );
 			$this->api_key           = $this->get_option( 'api_key', '' );
 			$this->pricing_mode      = $this->get_option( 'pricing_mode', 'native' );
@@ -99,7 +99,7 @@ if ( class_exists( 'WC_Payment_Gateway' ) && ! class_exists( 'WC_Gateway_Ramzpal
 					'title'       => __( 'توضیح کوتاه', 'ramzpal-payment-gateway-for-woocommerce' ),
 					'type'        => 'textarea',
 					'description' => __( 'در صفحه تسویه‌حساب زیر نام درگاه نمایش داده می‌شود.', 'ramzpal-payment-gateway-for-woocommerce' ),
-					'default'     => __( 'پرداخت امن با USDT روی شبکه BEP20؛ مبلغ و وضعیت تراکنش پیش از ثبت سفارش تأیید می‌شود.', 'ramzpal-payment-gateway-for-woocommerce' ),
+					'default'     => __( 'مبلغ سفارش را با تتر و از طریق درگاه رمزپال پرداخت کنید.', 'ramzpal-payment-gateway-for-woocommerce' ),
 					'desc_tip'    => true,
 				),
 				'api_key'            => array(
@@ -107,7 +107,7 @@ if ( class_exists( 'WC_Payment_Gateway' ) && ! class_exists( 'WC_Gateway_Ramzpal
 					'type'        => 'password',
 					'description' => sprintf(
 						/* translators: 1: login link, 2: merchant creation link. */
-						__( 'این مقدار همان توکن احراز هویت Bearer است: ابتدا <a href="%1$s" target="_blank" rel="noopener noreferrer">وارد پنل رمزپال</a> شوید، در صورت نیاز <a href="%2$s" target="_blank" rel="noopener noreferrer">یک پذیرنده بسازید</a> و سپس از بخش مدیریت پذیرنده‌ها API Key همان پذیرنده را کپی کنید. کلید در لاگ‌ها ثبت نمی‌شود.', 'ramzpal-payment-gateway-for-woocommerce' ),
+						__( 'ابتدا <a href="%1$s" target="_blank" rel="noopener noreferrer">وارد پنل رمزپال</a> شوید. اگر هنوز پذیرنده ندارید، <a href="%2$s" target="_blank" rel="noopener noreferrer">یک پذیرنده بسازید</a>. سپس از بخش مدیریت پذیرنده‌ها، کلید API همان پذیرنده را کپی و اینجا وارد کنید.', 'ramzpal-payment-gateway-for-woocommerce' ),
 						esc_url( 'https://ramzpal.com/login' ),
 						esc_url( 'https://ramzpal.com/profile/merchant/create' )
 					),
@@ -116,7 +116,7 @@ if ( class_exists( 'WC_Payment_Gateway' ) && ! class_exists( 'WC_Gateway_Ramzpal
 				'pricing_mode'       => array(
 					'title'       => __( 'محاسبه مبلغ USDT', 'ramzpal-payment-gateway-for-woocommerce' ),
 					'type'        => 'select',
-					'description' => __( 'رمزپال مبلغ را به USDT دریافت می‌کند. برای فروشگاه USDT یا USD حالت یک‌به‌یک و برای واحدهای دیگر نرخ تبدیل را انتخاب کنید.', 'ramzpal-payment-gateway-for-woocommerce' ),
+					'description' => __( 'اگر قیمت محصولات با تتر یا دلار است، حالت یک‌به‌یک را انتخاب کنید. برای تومان، ریال یا واحدهای دیگر از نرخ تبدیل استفاده کنید.', 'ramzpal-payment-gateway-for-woocommerce' ),
 					'default'     => 'native',
 					'options'     => array(
 						'native' => __( 'یک‌به‌یک (فقط USDT یا USD)', 'ramzpal-payment-gateway-for-woocommerce' ),
@@ -126,7 +126,7 @@ if ( class_exists( 'WC_Payment_Gateway' ) && ! class_exists( 'WC_Gateway_Ramzpal
 				'exchange_rate'      => array(
 					'title'             => __( 'قیمت هر ۱ USDT', 'ramzpal-payment-gateway-for-woocommerce' ),
 					'type'              => 'decimal',
-					'description'       => __( 'قیمت یک تتر بر حسب واحد پول فروشگاه. نمونه: اگر قیمت یک تتر ۱۰۰٬۰۰۰ تومان است، 100000 وارد کنید. مسئولیت به‌روز نگه‌داشتن این نرخ با مدیر فروشگاه است.', 'ramzpal-payment-gateway-for-woocommerce' ),
+					'description'       => __( 'قیمت یک تتر بر اساس واحد پول فروشگاه را وارد کنید. برای نمونه، اگر هر تتر ۱۰۰٬۰۰۰ تومان است، عدد 100000 را بنویسید. هر زمان نرخ تغییر کرد، این عدد را هم به‌روز کنید.', 'ramzpal-payment-gateway-for-woocommerce' ),
 					'default'           => '',
 					'custom_attributes' => array(
 						'min'  => '0.000001',
@@ -186,8 +186,8 @@ if ( class_exists( 'WC_Payment_Gateway' ) && ! class_exists( 'WC_Gateway_Ramzpal
 			<div class="ramzpal-settings-hero" dir="rtl">
 				<img src="<?php echo esc_url( RAMZPAL_WC_URL . 'assets/images/ramzpal-logo.webp' ); ?>" alt="<?php esc_attr_e( 'رمزپال', 'ramzpal-payment-gateway-for-woocommerce' ); ?>">
 				<div>
-					<h2><?php esc_html_e( 'پرداخت تتری ساده، امن و قابل پیگیری', 'ramzpal-payment-gateway-for-woocommerce' ); ?></h2>
-					<p><?php esc_html_e( 'برای شروع فقط کلید API و شیوه محاسبه مبلغ را تنظیم کنید. آدرس بازگشت به‌صورت خودکار ساخته می‌شود.', 'ramzpal-payment-gateway-for-woocommerce' ); ?></p>
+					<h2><?php esc_html_e( 'درگاه رمزپال را در چند دقیقه راه‌اندازی کنید', 'ramzpal-payment-gateway-for-woocommerce' ); ?></h2>
+					<p><?php esc_html_e( 'برای شروع، کلید API را وارد و روش محاسبه مبلغ را انتخاب کنید. بقیه تنظیمات آماده است.', 'ramzpal-payment-gateway-for-woocommerce' ); ?></p>
 					<ol class="ramzpal-settings-steps">
 						<li><?php esc_html_e( 'در پنل رمزپال یک پذیرنده ایجاد کنید.', 'ramzpal-payment-gateway-for-woocommerce' ); ?></li>
 						<li><?php esc_html_e( 'API Key پذیرنده را در فیلد «کلید API» قرار دهید.', 'ramzpal-payment-gateway-for-woocommerce' ); ?></li>

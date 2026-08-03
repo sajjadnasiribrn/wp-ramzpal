@@ -2,8 +2,8 @@
 /**
  * Plugin Name: درگاه پرداخت رمزپال برای ووکامرس
  * Plugin URI: https://ramzpal.com/developers/docs
- * Description: پرداخت امن سفارش‌های ووکامرس با تتر (USDT) از طریق درگاه رمزپال.
- * Version: 1.0.0
+ * Description: درگاه پرداخت تتر رمزپال برای ووکامرس، با نصب ساده و تنظیمات فارسی.
+ * Version: 1.0.1
  * Author: RamzPal
  * Author URI: https://ramzpal.com
  * Text Domain: ramzpal-payment-gateway-for-woocommerce
@@ -20,7 +20,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'RAMZPAL_WC_VERSION', '1.0.0' );
+define( 'RAMZPAL_WC_VERSION', '1.0.1' );
 define( 'RAMZPAL_WC_FILE', __FILE__ );
 define( 'RAMZPAL_WC_PATH', plugin_dir_path( __FILE__ ) );
 define( 'RAMZPAL_WC_URL', plugin_dir_url( __FILE__ ) );
