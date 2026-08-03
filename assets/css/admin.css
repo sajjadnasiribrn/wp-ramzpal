@@ -1,0 +1,61 @@
+.ramzpal-settings-hero {
+	display: flex;
+	align-items: center;
+	gap: 20px;
+	max-width: 920px;
+	margin: 20px 0 28px;
+	padding: 22px 24px;
+	border: 1px solid #dbe2ea;
+	border-radius: 16px;
+	background: linear-gradient(135deg, #f8fbff 0%, #f3fff9 100%);
+	box-shadow: 0 8px 28px rgba(24, 39, 75, 0.06);
+}
+
+.ramzpal-settings-hero img {
+	width: 72px;
+	height: 72px;
+	flex: 0 0 auto;
+}
+
+.ramzpal-settings-hero h2 {
+	margin: 0 0 8px;
+	color: #172554;
+	font-size: 20px;
+}
+
+.ramzpal-settings-hero p {
+	margin: 0;
+	color: #475569;
+	font-size: 14px;
+	line-height: 1.9;
+}
+
+.ramzpal-settings-steps {
+	margin: 10px 20px 0 0;
+	color: #334155;
+	line-height: 2;
+}
+
+.ramzpal-settings-links {
+	display: flex;
+	gap: 14px;
+	margin-top: 9px !important;
+}
+
+.ramzpal-settings-links a {
+	color: #3156e8;
+	font-weight: 600;
+	text-decoration: none;
+}
+
+@media (max-width: 600px) {
+	.ramzpal-settings-hero {
+		align-items: flex-start;
+		padding: 18px;
+	}
+
+	.ramzpal-settings-hero img {
+		width: 52px;
+		height: 52px;
+	}
+}

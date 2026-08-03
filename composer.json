@@ -1,0 +1,13 @@
+{
+  "name": "ramzpal/payment-gateway-for-woocommerce",
+  "description": "RamzPal USDT payment gateway for WooCommerce",
+  "type": "wordpress-plugin",
+  "license": "GPL-3.0-or-later",
+  "require": {
+    "php": ">=7.4"
+  },
+  "scripts": {
+    "lint": "find . -type f -name '*.php' -not -path './vendor/*' -print0 | xargs -0 -n1 php -l",
+    "test": "php tests/smoke.php"
+  }
+}
