@@ -111,6 +111,7 @@ final class Ramzpal_Test_Order {
 	public function get_total() { return $this->total; }
 	public function get_currency() { return $this->currency; }
 	public function get_meta( $key ) { return isset( $this->meta[ $key ] ) ? $this->meta[ $key ] : ''; }
+	public function get_order_key() { return 'wc_order_key_test'; }
 	public function update_meta_data( $key, $value ) { $this->meta[ $key ] = $value; }
 	public function save() {}
 	public function payment_complete() { $this->paid = true; }
@@ -192,10 +193,33 @@ $verified = $verify_method->invoke( $gateway, $verification_order, 'pay_verified
 $check( ! is_wp_error( $verified ) && $verification_order->paid, 'Valid verification did not complete the order.' );
 $check( array( '0xabc' ) === $verification_order->get_meta( WC_Gateway_Ramzpal::META_TRANSACTION_IDS ), 'Transaction IDs were not normalized.' );
 
+$callback_order = new Ramzpal_Test_Order(
+	'10000000',
+	'IRT',
+	array(
+		WC_Gateway_Ramzpal::META_PAYMENT_ID    => 'pay_verified',
+		WC_Gateway_Ramzpal::META_EXTERNAL_ORDER => 'wc-1-42',
+	)
+);
+$callback_method = new ReflectionMethod( WC_Gateway_Ramzpal::class, 'validate_callback_context' );
+$callback_method->setAccessible( true );
+$valid_callback = $callback_method->invoke( $gateway, $callback_order, 'pay_verified', 'wc-1-42', 'wc_order_key_test', 'true' );
+$check( true === $valid_callback, 'Valid callback context was rejected.' );
+$missing_key_callback = $callback_method->invoke( $gateway, $callback_order, 'pay_verified', 'wc-1-42', '', 'true' );
+$check( is_wp_error( $missing_key_callback ) && 'ramzpal_callback_invalid_key' === $missing_key_callback->get_error_code(), 'Callback without an order key was accepted.' );
+$wrong_order_callback = $callback_method->invoke( $gateway, $callback_order, 'pay_verified', 'wc-1-99', 'wc_order_key_test', 'true' );
+$check( is_wp_error( $wrong_order_callback ) && 'ramzpal_callback_order_mismatch' === $wrong_order_callback->get_error_code(), 'Callback with a mismatched order ID was accepted.' );
+$failed_callback = $callback_method->invoke( $gateway, $callback_order, 'pay_verified', 'wc-1-42', 'wc_order_key_test', 'false' );
+$check( is_wp_error( $failed_callback ) && 'ramzpal_callback_unsuccessful' === $failed_callback->get_error_code(), 'Unsuccessful callback was accepted.' );
+
 $ramzpal_test_http_response['body'] = '{"success":true,"status":"VERIFIED","payment_id":"pay_wrong","order_id":"wc-1-42","amount":100,"tx_ids":[]}';
 $mismatch_order = new Ramzpal_Test_Order( '10000000', 'IRT', array( WC_Gateway_Ramzpal::META_EXTERNAL_ORDER => 'wc-1-42' ) );
 $mismatch = $verify_method->invoke( $gateway, $mismatch_order, 'pay_verified', '100.0000' );
 $check( is_wp_error( $mismatch ) && ! $mismatch_order->paid, 'Mismatched payment ID completed the order.' );
+
+$ramzpal_test_http_response = array( 'status' => 422, 'body' => '{"message":"this payment exists."}' );
+$duplicate = $client->create_payment( array( 'amount' => 10 ) );
+$check( is_wp_error( $duplicate ) && 'برای این سفارش قبلاً یک پرداخت فعال ساخته شده است.' === $duplicate->get_error_message(), 'Punctuated duplicate-payment error was not normalized.' );
 
 if ( $failures ) {
 	fwrite( STDERR, implode( PHP_EOL, $failures ) . PHP_EOL );

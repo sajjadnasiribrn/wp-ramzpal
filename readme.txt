@@ -5,7 +5,7 @@ Requires at least: 6.2
 Tested up to: 7.0
 Requires PHP: 7.4
 Requires Plugins: woocommerce
-Stable tag: 1.0.3
+Stable tag: 1.0.4
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -61,6 +61,11 @@ License URI: https://www.gnu.org/licenses/gpl-3.0.html
 پس از فعال کردن گزارش فنی، در «ووکامرس ← وضعیت ← گزارش‌ها» منبع ramzpal را انتخاب کنید.
 
 == Changelog ==
+
+= 1.0.4 =
+
+* سخت‌گیری امنیتی در اعتبارسنجی Callback و تطبیق کلید، شناسه پرداخت و شناسه سفارش
+* اصلاح پردازش پیام سفارش تکراری API رمزپال
 
 = 1.0.3 =
 

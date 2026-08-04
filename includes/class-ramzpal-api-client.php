@@ -188,7 +188,7 @@ final class Ramzpal_API_Client {
 	 * @return string
 	 */
 	private function friendly_error_message( $status, $message ) {
-		$message = strtolower( trim( (string) $message ) );
+		$message = rtrim( strtolower( trim( (string) $message ) ), '.' );
 
 		if ( 401 === $status ) {
 			return __( 'کلید API رمزپال معتبر نیست. تنظیمات درگاه را بررسی کنید.', 'ramzpal-payment-gateway-for-woocommerce' );

@@ -352,25 +352,28 @@ if ( class_exists( 'WC_Payment_Gateway' ) && ! class_exists( 'WC_Gateway_Ramzpal
 		 * Verify callback data against the API before completing an order.
 		 */
 		public function handle_callback() {
-			$order_id  = isset( $_GET['wc_order'] ) ? absint( wp_unslash( $_GET['wc_order'] ) ) : 0;
-			$order_id  = $order_id ? $order_id : $this->order_id_from_external_id( isset( $_GET['order_id'] ) ? wp_unslash( $_GET['order_id'] ) : '' );
-			$order     = $order_id ? wc_get_order( $order_id ) : false;
-			$payment_id = isset( $_GET['payment_id'] ) ? sanitize_text_field( wp_unslash( $_GET['payment_id'] ) ) : '';
+			$external_order_id = isset( $_GET['order_id'] ) ? sanitize_text_field( wp_unslash( $_GET['order_id'] ) ) : '';
+			$order_id          = isset( $_GET['wc_order'] ) ? absint( wp_unslash( $_GET['wc_order'] ) ) : 0;
+			$order_id          = $order_id ? $order_id : $this->order_id_from_external_id( $external_order_id );
+			$order             = $order_id ? wc_get_order( $order_id ) : false;
+			$payment_id        = isset( $_GET['payment_id'] ) ? sanitize_text_field( wp_unslash( $_GET['payment_id'] ) ) : '';
+			$provided_key      = isset( $_GET['key'] ) ? wc_clean( wp_unslash( $_GET['key'] ) ) : '';
+			$callback_success  = isset( $_GET['success'] ) ? strtolower( wc_clean( wp_unslash( $_GET['success'] ) ) ) : '';
 
 			if ( ! $order ) {
 				$this->callback_error( __( 'سفارش مرتبط با این پرداخت پیدا نشد.', 'ramzpal-payment-gateway-for-woocommerce' ), 400 );
 			}
 
-			$provided_key = isset( $_GET['key'] ) ? wc_clean( wp_unslash( $_GET['key'] ) ) : '';
-			if ( '' !== $provided_key && ! hash_equals( (string) $order->get_order_key(), (string) $provided_key ) ) {
-				$this->callback_error( __( 'نشانی بازگشت این سفارش معتبر نیست.', 'ramzpal-payment-gateway-for-woocommerce' ), 403 );
+			$callback_validation = $this->validate_callback_context( $order, $payment_id, $external_order_id, $provided_key, $callback_success );
+			if ( is_wp_error( $callback_validation ) ) {
+				$order->add_order_note( 'رمزپال: ' . $callback_validation->get_error_message() );
+				if ( 'ramzpal_callback_invalid_key' === $callback_validation->get_error_code() ) {
+					$this->callback_error( $callback_validation->get_error_message(), 403 );
+				}
+				$this->redirect_failure( $order, $callback_validation->get_error_message() );
 			}
 
 			$expected_payment_id = (string) $order->get_meta( self::META_PAYMENT_ID, true );
-			if ( '' === $payment_id || '' === $expected_payment_id || ! hash_equals( $expected_payment_id, $payment_id ) ) {
-				$order->add_order_note( __( 'رمزپال: بازگشت نامعتبر به‌دلیل عدم تطابق شناسه پرداخت رد شد.', 'ramzpal-payment-gateway-for-woocommerce' ) );
-				$this->redirect_failure( $order, __( 'شناسه پرداخت معتبر نیست.', 'ramzpal-payment-gateway-for-woocommerce' ) );
-			}
 
 			if ( $order->is_paid() ) {
 				$this->redirect_success( $order, $expected_payment_id, $this->get_transaction_ids( $order ) );
@@ -427,6 +430,41 @@ if ( class_exists( 'WC_Payment_Gateway' ) && ! class_exists( 'WC_Gateway_Ramzpal
 			}
 
 			return $result;
+		}
+
+		/**
+		 * Validate every callback value that was fixed when the payment was created.
+		 *
+		 * Verify remains authoritative for the final payment state, but malformed or
+		 * unsuccessful callbacks must never reach it.
+		 *
+		 * @param WC_Order $order             Order object.
+		 * @param string   $payment_id        Provider payment ID from callback.
+		 * @param string   $external_order_id Merchant order ID from callback.
+		 * @param string   $provided_key      WooCommerce order key from callback URL.
+		 * @param string   $callback_success  Provider success flag.
+		 * @return true|WP_Error
+		 */
+		private function validate_callback_context( $order, $payment_id, $external_order_id, $provided_key, $callback_success ) {
+			if ( '' === $provided_key || ! hash_equals( (string) $order->get_order_key(), (string) $provided_key ) ) {
+				return new WP_Error( 'ramzpal_callback_invalid_key', __( 'نشانی بازگشت این سفارش معتبر نیست.', 'ramzpal-payment-gateway-for-woocommerce' ) );
+			}
+
+			$expected_payment_id = (string) $order->get_meta( self::META_PAYMENT_ID, true );
+			if ( '' === $payment_id || '' === $expected_payment_id || ! hash_equals( $expected_payment_id, (string) $payment_id ) ) {
+				return new WP_Error( 'ramzpal_callback_payment_mismatch', __( 'شناسه پرداخت بازگشتی معتبر نیست.', 'ramzpal-payment-gateway-for-woocommerce' ) );
+			}
+
+			$expected_order_id = (string) $order->get_meta( self::META_EXTERNAL_ORDER, true );
+			if ( '' === $external_order_id || '' === $expected_order_id || ! hash_equals( $expected_order_id, (string) $external_order_id ) ) {
+				return new WP_Error( 'ramzpal_callback_order_mismatch', __( 'شناسه سفارش بازگشتی معتبر نیست.', 'ramzpal-payment-gateway-for-woocommerce' ) );
+			}
+
+			if ( ! in_array( $callback_success, array( 'true', '1' ), true ) ) {
+				return new WP_Error( 'ramzpal_callback_unsuccessful', __( 'رمزپال پرداخت را موفق اعلام نکرده است.', 'ramzpal-payment-gateway-for-woocommerce' ) );
+			}
+
+			return true;
 		}
 
 		/**
