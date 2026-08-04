@@ -61,6 +61,7 @@ final class Ramzpal_API_Client {
 
 		$base_url = (string) apply_filters( 'ramzpal_wc_api_base_url', 'https://ramzpal.com' );
 		$url      = untrailingslashit( $base_url ) . $path;
+		$boundary = '----RamzPalWooCommerce' . str_replace( '-', '', wp_generate_uuid4() );
 		$args     = array(
 			'method'      => 'POST',
 			'timeout'     => 20,
@@ -69,10 +70,10 @@ final class Ramzpal_API_Client {
 			'headers'     => array(
 				'Accept'        => 'application/json',
 				'Authorization' => 'Bearer ' . $this->api_key,
-				'Content-Type'  => 'application/json; charset=utf-8',
+				'Content-Type'  => 'multipart/form-data; boundary=' . $boundary,
 				'User-Agent'    => 'RamzPal-WooCommerce/' . RAMZPAL_WC_VERSION . '; ' . home_url( '/' ),
 			),
-			'body'        => wp_json_encode( $payload ),
+			'body'        => $this->build_multipart_body( $payload, $boundary ),
 		);
 
 		$this->log( 'ارسال درخواست API', array( 'path' => $path, 'payload' => $payload ) );
@@ -124,6 +125,38 @@ final class Ramzpal_API_Client {
 		}
 
 		return $data;
+	}
+
+	/**
+	 * Encode request fields exactly as the RamzPal payment API expects them.
+	 *
+	 * @param array  $payload  Request payload.
+	 * @param string $boundary Multipart boundary.
+	 * @return string
+	 */
+	private function build_multipart_body( array $payload, $boundary ) {
+		$body = '';
+
+		foreach ( $payload as $name => $value ) {
+			$name = preg_replace( '/[^A-Za-z0-9_.\[\]-]/', '', (string) $name );
+			if ( '' === $name ) {
+				continue;
+			}
+
+			if ( is_bool( $value ) ) {
+				$value = $value ? '1' : '0';
+			} elseif ( is_array( $value ) || is_object( $value ) ) {
+				$value = wp_json_encode( $value );
+			} elseif ( null === $value ) {
+				$value = '';
+			}
+
+			$body .= '--' . $boundary . "\r\n";
+			$body .= 'Content-Disposition: form-data; name="' . $name . '"' . "\r\n\r\n";
+			$body .= (string) $value . "\r\n";
+		}
+
+		return $body . '--' . $boundary . "--\r\n";
 	}
 
 	/**

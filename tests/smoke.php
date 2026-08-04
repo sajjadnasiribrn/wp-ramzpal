@@ -82,6 +82,7 @@ function wc_format_decimal( $number, $dp = false ) {
 function home_url() { return 'https://merchant.example/'; }
 function untrailingslashit( $value ) { return rtrim( $value, '/' ); }
 function wp_json_encode( $value ) { return json_encode( $value ); }
+function wp_generate_uuid4() { return '12345678-1234-4000-8000-123456789abc'; }
 function sanitize_text_field( $value ) { return trim( strip_tags( (string) $value ) ); }
 function is_wp_error( $value ) { return $value instanceof WP_Error; }
 function wp_remote_retrieve_response_code( $response ) { return $response['status']; }
@@ -157,6 +158,9 @@ $result = $client->create_payment( array( 'amount' => 10 ) );
 $check( ! is_wp_error( $result ) && 'pay_test' === $result['payment_id'], 'Successful API response was not parsed.' );
 $check( 'https://ramzpal.com/api/v1/payment/request' === $ramzpal_test_http_request['url'], 'Request endpoint is incorrect.' );
 $check( 'Bearer opaque%key' === $ramzpal_test_http_request['args']['headers']['Authorization'], 'Bearer header is incorrect.' );
+$check( 0 === strpos( $ramzpal_test_http_request['args']['headers']['Content-Type'], 'multipart/form-data; boundary=' ), 'Request is not multipart/form-data.' );
+$check( false !== strpos( $ramzpal_test_http_request['args']['body'], 'name="amount"' . "\r\n\r\n" . '10' ), 'Multipart amount field is missing.' );
+$check( false !== strpos( $ramzpal_test_http_request['args']['body'], '--' . substr( $ramzpal_test_http_request['args']['headers']['Content-Type'], strlen( 'multipart/form-data; boundary=' ) ) . '--' ), 'Multipart body is not closed.' );
 $check( true === $ramzpal_test_http_request['args']['sslverify'], 'TLS verification is not enabled.' );
 
 $ramzpal_test_http_response = array( 'status' => 401, 'body' => '{"message":"Unauthorized"}' );

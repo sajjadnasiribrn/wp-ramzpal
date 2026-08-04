@@ -5,7 +5,7 @@ Requires at least: 6.2
 Tested up to: 7.0
 Requires PHP: 7.4
 Requires Plugins: woocommerce
-Stable tag: 1.0.1
+Stable tag: 1.0.2
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -61,6 +61,10 @@ License URI: https://www.gnu.org/licenses/gpl-3.0.html
 پس از فعال کردن گزارش فنی، در «ووکامرس ← وضعیت ← گزارش‌ها» منبع ramzpal را انتخاب کنید.
 
 == Changelog ==
+
+= 1.0.2 =
+
+* اصلاح ارسال درخواست ساخت و تأیید پرداخت با فرمت multipart/form-data مورد انتظار API رمزپال
 
 = 1.0.1 =
 
