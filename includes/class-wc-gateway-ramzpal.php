@@ -279,8 +279,7 @@ if ( class_exists( 'WC_Payment_Gateway' ) && ! class_exists( 'WC_Gateway_Ramzpal
 				return array( 'result' => 'failure' );
 			}
 
-			$external_order_id = $this->get_external_order_id( $order );
-			$callback_url      = add_query_arg(
+			$callback_url = add_query_arg(
 				array(
 					'wc_order' => $order->get_id(),
 					'key'      => $order->get_order_key(),
@@ -292,10 +291,10 @@ if ( class_exists( 'WC_Payment_Gateway' ) && ! class_exists( 'WC_Gateway_Ramzpal
 			$payload = array(
 				'amount'       => (float) $amount,
 				'callback_url' => $callback_url,
-				'order_id'     => $external_order_id,
 				'language'     => $this->resolve_language(),
 			);
 			$payload = (array) apply_filters( 'ramzpal_wc_payment_payload', $payload, $order );
+			unset( $payload['order_id'] );
 
 			$response = $this->api()->create_payment( $payload );
 			if ( is_wp_error( $response ) ) {
@@ -332,7 +331,7 @@ if ( class_exists( 'WC_Payment_Gateway' ) && ! class_exists( 'WC_Gateway_Ramzpal
 			$order->update_meta_data( self::META_PAYMENT_AMOUNT, $amount );
 			$order->update_meta_data( self::META_REDIRECT_URL, $redirect_url );
 			$order->update_meta_data( self::META_REQUESTED_AT, time() );
-			$order->update_meta_data( self::META_EXTERNAL_ORDER, $external_order_id );
+			$order->delete_meta_data( self::META_EXTERNAL_ORDER );
 			$order->save();
 			$order->add_order_note(
 				sprintf(
@@ -456,7 +455,7 @@ if ( class_exists( 'WC_Payment_Gateway' ) && ! class_exists( 'WC_Gateway_Ramzpal
 			}
 
 			$expected_order_id = (string) $order->get_meta( self::META_EXTERNAL_ORDER, true );
-			if ( '' === $external_order_id || '' === $expected_order_id || ! hash_equals( $expected_order_id, (string) $external_order_id ) ) {
+			if ( '' !== $expected_order_id && ( '' === $external_order_id || ! hash_equals( $expected_order_id, (string) $external_order_id ) ) ) {
 				return new WP_Error( 'ramzpal_callback_order_mismatch', __( 'شناسه سفارش بازگشتی معتبر نیست.', 'ramzpal-payment-gateway-for-woocommerce' ) );
 			}
 
@@ -493,11 +492,13 @@ if ( class_exists( 'WC_Payment_Gateway' ) && ! class_exists( 'WC_Gateway_Ramzpal
 			$verified_amount     = isset( $response['amount'] ) ? (float) $response['amount'] : -1;
 			$expected_order_id   = (string) $order->get_meta( self::META_EXTERNAL_ORDER, true );
 			$tolerance           = pow( 10, -1 * $this->amount_precision ) / 2;
+			$order_id_matches     = '' === $expected_order_id
+				|| ( '' !== $verified_order_id && hash_equals( $expected_order_id, $verified_order_id ) );
 
 			$is_valid = ! empty( $response['success'] )
 				&& 'VERIFIED' === $verified_status
 				&& hash_equals( (string) $payment_id, $verified_payment_id )
-				&& hash_equals( $expected_order_id, $verified_order_id )
+				&& $order_id_matches
 				&& abs( (float) $amount - $verified_amount ) <= $tolerance;
 
 			if ( ! $is_valid ) {
@@ -621,8 +622,19 @@ if ( class_exists( 'WC_Payment_Gateway' ) && ! class_exists( 'WC_Gateway_Ramzpal
 			$requested_at = absint( $order->get_meta( self::META_REQUESTED_AT, true ) );
 			$saved_amount = (string) $order->get_meta( self::META_PAYMENT_AMOUNT, true );
 			$url          = (string) $order->get_meta( self::META_REDIRECT_URL, true );
+			$query        = wp_parse_url( $url, PHP_URL_QUERY );
+			$query_args   = array();
 
-			if ( $requested_at < time() - ( 14 * MINUTE_IN_SECONDS ) || $saved_amount !== (string) $amount ) {
+			if ( is_string( $query ) ) {
+				wp_parse_str( $query, $query_args );
+			}
+
+			$expires_at = isset( $query_args['expires'] ) ? absint( $query_args['expires'] ) : 0;
+			$is_expired = $expires_at
+				? $expires_at <= time() + 30
+				: $requested_at < time() - ( 14 * MINUTE_IN_SECONDS );
+
+			if ( $is_expired || $saved_amount !== (string) $amount ) {
 				return false;
 			}
 
@@ -641,14 +653,7 @@ if ( class_exists( 'WC_Payment_Gateway' ) && ! class_exists( 'WC_Gateway_Ramzpal
 		}
 
 		/**
-		 * Generate a merchant-scoped, non-PII order identifier.
-		 */
-		private function get_external_order_id( $order ) {
-			return 'wc-' . get_current_blog_id() . '-' . $order->get_id();
-		}
-
-		/**
-		 * Recover the order when a provider does not preserve callback query args.
+		 * Recover legacy orders whose provider callback did not preserve query args.
 		 */
 		private function order_id_from_external_id( $external_id ) {
 			$external_id = sanitize_text_field( $external_id );

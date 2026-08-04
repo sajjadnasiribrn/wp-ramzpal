@@ -81,6 +81,9 @@ function wc_format_decimal( $number, $dp = false ) {
 }
 function home_url() { return 'https://merchant.example/'; }
 function untrailingslashit( $value ) { return rtrim( $value, '/' ); }
+function wp_parse_url( $url, $component = -1 ) { return parse_url( $url, $component ); }
+function wp_parse_str( $string, &$result ) { parse_str( $string, $result ); }
+function wp_http_validate_url( $url ) { return filter_var( $url, FILTER_VALIDATE_URL ) ? $url : false; }
 function wp_json_encode( $value ) { return json_encode( $value ); }
 function wp_generate_uuid4() { return '12345678-1234-4000-8000-123456789abc'; }
 function sanitize_text_field( $value ) { return trim( strip_tags( (string) $value ) ); }
@@ -113,6 +116,7 @@ final class Ramzpal_Test_Order {
 	public function get_meta( $key ) { return isset( $this->meta[ $key ] ) ? $this->meta[ $key ] : ''; }
 	public function get_order_key() { return 'wc_order_key_test'; }
 	public function update_meta_data( $key, $value ) { $this->meta[ $key ] = $value; }
+	public function delete_meta_data( $key ) { unset( $this->meta[ $key ] ); }
 	public function save() {}
 	public function payment_complete() { $this->paid = true; }
 	public function add_order_note( $note ) { $this->notes[] = $note; }
@@ -155,13 +159,20 @@ $ramzpal_test_http_response = array(
 	'status' => 200,
 	'body'   => '{"data":{"success":true,"payment_id":"pay_test","redirect_url":"https://ramzpal.com/pay/test"}}',
 );
-$result = $client->create_payment( array( 'amount' => 10 ) );
+$result = $client->create_payment(
+	array(
+		'amount'       => 10,
+		'callback_url' => 'https://merchant.example/callback',
+		'language'     => 'fa',
+	)
+);
 $check( ! is_wp_error( $result ) && 'pay_test' === $result['payment_id'], 'Successful API response was not parsed.' );
 $check( 'https://ramzpal.com/pay/test' === $result['redirect_url'], 'Nested API response was not normalized.' );
 $check( 'https://ramzpal.com/api/v1/payment/request' === $ramzpal_test_http_request['url'], 'Request endpoint is incorrect.' );
 $check( 'Bearer opaque%key' === $ramzpal_test_http_request['args']['headers']['Authorization'], 'Bearer header is incorrect.' );
 $check( 0 === strpos( $ramzpal_test_http_request['args']['headers']['Content-Type'], 'multipart/form-data; boundary=' ), 'Request is not multipart/form-data.' );
 $check( false !== strpos( $ramzpal_test_http_request['args']['body'], 'name="amount"' . "\r\n\r\n" . '10' ), 'Multipart amount field is missing.' );
+$check( false === strpos( $ramzpal_test_http_request['args']['body'], 'name="order_id"' ), 'Optional order_id was included in the payment request.' );
 $check( false !== strpos( $ramzpal_test_http_request['args']['body'], '--' . substr( $ramzpal_test_http_request['args']['headers']['Content-Type'], strlen( 'multipart/form-data; boundary=' ) ) . '--' ), 'Multipart body is not closed.' );
 $check( true === $ramzpal_test_http_request['args']['sslverify'], 'TLS verification is not enabled.' );
 
@@ -176,16 +187,10 @@ $check( is_wp_error( $result ) && 'ramzpal_invalid_response' === $result->get_er
 $missing_key_result = ( new Ramzpal_API_Client( '' ) )->create_payment( array() );
 $check( is_wp_error( $missing_key_result ) && 'ramzpal_missing_api_key' === $missing_key_result->get_error_code(), 'Missing API key was not rejected.' );
 
-$verification_order = new Ramzpal_Test_Order(
-	'10000000',
-	'IRT',
-	array(
-		WC_Gateway_Ramzpal::META_EXTERNAL_ORDER => 'wc-1-42',
-	)
-);
+$verification_order = new Ramzpal_Test_Order( '10000000', 'IRT' );
 $ramzpal_test_http_response = array(
 	'status' => 200,
-	'body'   => '{"success":true,"status":"VERIFIED","payment_id":"pay_verified","order_id":"wc-1-42","amount":100,"tx_ids":["0xabc","0xabc"]}',
+	'body'   => '{"success":true,"status":"VERIFIED","payment_id":"pay_verified","amount":100,"tx_ids":["0xabc","0xabc"]}',
 );
 $verify_method = new ReflectionMethod( WC_Gateway_Ramzpal::class, 'verify_and_complete_order' );
 $verify_method->setAccessible( true );
@@ -197,23 +202,76 @@ $callback_order = new Ramzpal_Test_Order(
 	'10000000',
 	'IRT',
 	array(
-		WC_Gateway_Ramzpal::META_PAYMENT_ID    => 'pay_verified',
-		WC_Gateway_Ramzpal::META_EXTERNAL_ORDER => 'wc-1-42',
+		WC_Gateway_Ramzpal::META_PAYMENT_ID => 'pay_verified',
 	)
 );
 $callback_method = new ReflectionMethod( WC_Gateway_Ramzpal::class, 'validate_callback_context' );
 $callback_method->setAccessible( true );
-$valid_callback = $callback_method->invoke( $gateway, $callback_order, 'pay_verified', 'wc-1-42', 'wc_order_key_test', 'true' );
+$valid_callback = $callback_method->invoke( $gateway, $callback_order, 'pay_verified', '', 'wc_order_key_test', 'true' );
 $check( true === $valid_callback, 'Valid callback context was rejected.' );
-$missing_key_callback = $callback_method->invoke( $gateway, $callback_order, 'pay_verified', 'wc-1-42', '', 'true' );
+$missing_key_callback = $callback_method->invoke( $gateway, $callback_order, 'pay_verified', '', '', 'true' );
 $check( is_wp_error( $missing_key_callback ) && 'ramzpal_callback_invalid_key' === $missing_key_callback->get_error_code(), 'Callback without an order key was accepted.' );
-$wrong_order_callback = $callback_method->invoke( $gateway, $callback_order, 'pay_verified', 'wc-1-99', 'wc_order_key_test', 'true' );
-$check( is_wp_error( $wrong_order_callback ) && 'ramzpal_callback_order_mismatch' === $wrong_order_callback->get_error_code(), 'Callback with a mismatched order ID was accepted.' );
-$failed_callback = $callback_method->invoke( $gateway, $callback_order, 'pay_verified', 'wc-1-42', 'wc_order_key_test', 'false' );
+$failed_callback = $callback_method->invoke( $gateway, $callback_order, 'pay_verified', '', 'wc_order_key_test', 'false' );
 $check( is_wp_error( $failed_callback ) && 'ramzpal_callback_unsuccessful' === $failed_callback->get_error_code(), 'Unsuccessful callback was accepted.' );
 
-$ramzpal_test_http_response['body'] = '{"success":true,"status":"VERIFIED","payment_id":"pay_wrong","order_id":"wc-1-42","amount":100,"tx_ids":[]}';
-$mismatch_order = new Ramzpal_Test_Order( '10000000', 'IRT', array( WC_Gateway_Ramzpal::META_EXTERNAL_ORDER => 'wc-1-42' ) );
+$legacy_callback_order = new Ramzpal_Test_Order(
+	'10000000',
+	'IRT',
+	array(
+		WC_Gateway_Ramzpal::META_PAYMENT_ID     => 'pay_verified',
+		WC_Gateway_Ramzpal::META_EXTERNAL_ORDER => 'wc-1-42',
+	)
+);
+$legacy_callback = $callback_method->invoke( $gateway, $legacy_callback_order, 'pay_verified', 'wc-1-42', 'wc_order_key_test', 'true' );
+$check( true === $legacy_callback, 'A matching legacy order_id was rejected.' );
+$wrong_order_callback = $callback_method->invoke( $gateway, $legacy_callback_order, 'pay_verified', 'wc-1-99', 'wc_order_key_test', 'true' );
+$check( is_wp_error( $wrong_order_callback ) && 'ramzpal_callback_order_mismatch' === $wrong_order_callback->get_error_code(), 'A mismatched legacy order_id was accepted.' );
+$missing_legacy_order_callback = $callback_method->invoke( $gateway, $legacy_callback_order, 'pay_verified', '', 'wc_order_key_test', 'true' );
+$check( is_wp_error( $missing_legacy_order_callback ) && 'ramzpal_callback_order_mismatch' === $missing_legacy_order_callback->get_error_code(), 'A missing legacy order_id was accepted.' );
+
+$legacy_verification_order = new Ramzpal_Test_Order(
+	'10000000',
+	'IRT',
+	array( WC_Gateway_Ramzpal::META_EXTERNAL_ORDER => 'wc-1-42' )
+);
+$ramzpal_test_http_response['body'] = '{"success":true,"status":"VERIFIED","payment_id":"pay_verified","order_id":"wc-1-42","amount":100,"tx_ids":[]}';
+$legacy_verified = $verify_method->invoke( $gateway, $legacy_verification_order, 'pay_verified', '100.0000' );
+$check( ! is_wp_error( $legacy_verified ) && $legacy_verification_order->paid, 'A matching legacy verification order_id was rejected.' );
+
+$missing_legacy_verification_order = new Ramzpal_Test_Order(
+	'10000000',
+	'IRT',
+	array( WC_Gateway_Ramzpal::META_EXTERNAL_ORDER => 'wc-1-42' )
+);
+$ramzpal_test_http_response['body'] = '{"success":true,"status":"VERIFIED","payment_id":"pay_verified","amount":100,"tx_ids":[]}';
+$missing_legacy_verified = $verify_method->invoke( $gateway, $missing_legacy_verification_order, 'pay_verified', '100.0000' );
+$check( is_wp_error( $missing_legacy_verified ) && ! $missing_legacy_verification_order->paid, 'A legacy verification without order_id was accepted.' );
+
+$reusable_method = new ReflectionMethod( WC_Gateway_Ramzpal::class, 'get_reusable_redirect_url' );
+$reusable_method->setAccessible( true );
+$live_redirect_order = new Ramzpal_Test_Order(
+	'10000000',
+	'IRT',
+	array(
+		WC_Gateway_Ramzpal::META_PAYMENT_AMOUNT => '100.0000',
+		WC_Gateway_Ramzpal::META_REDIRECT_URL   => 'https://ramzpal.com/start/pay_live?expires=' . ( time() + 300 ),
+		WC_Gateway_Ramzpal::META_REQUESTED_AT   => time() - 3600,
+	)
+);
+$check( false !== $reusable_method->invoke( $gateway, $live_redirect_order, '100.0000' ), 'A live signed redirect URL was not reused.' );
+$expired_redirect_order = new Ramzpal_Test_Order(
+	'10000000',
+	'IRT',
+	array(
+		WC_Gateway_Ramzpal::META_PAYMENT_AMOUNT => '100.0000',
+		WC_Gateway_Ramzpal::META_REDIRECT_URL   => 'https://ramzpal.com/start/pay_expired?expires=' . ( time() - 1 ),
+		WC_Gateway_Ramzpal::META_REQUESTED_AT   => time() - 60,
+	)
+);
+$check( false === $reusable_method->invoke( $gateway, $expired_redirect_order, '100.0000' ), 'An expired signed redirect URL was reused.' );
+
+$ramzpal_test_http_response['body'] = '{"success":true,"status":"VERIFIED","payment_id":"pay_wrong","amount":100,"tx_ids":[]}';
+$mismatch_order = new Ramzpal_Test_Order( '10000000', 'IRT' );
 $mismatch = $verify_method->invoke( $gateway, $mismatch_order, 'pay_verified', '100.0000' );
 $check( is_wp_error( $mismatch ) && ! $mismatch_order->paid, 'Mismatched payment ID completed the order.' );
 

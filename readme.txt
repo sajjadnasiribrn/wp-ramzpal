@@ -5,7 +5,7 @@ Requires at least: 6.2
 Tested up to: 7.0
 Requires PHP: 7.4
 Requires Plugins: woocommerce
-Stable tag: 1.0.4
+Stable tag: 1.0.5
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -61,6 +61,12 @@ License URI: https://www.gnu.org/licenses/gpl-3.0.html
 پس از فعال کردن گزارش فنی، در «ووکامرس ← وضعیت ← گزارش‌ها» منبع ramzpal را انتخاب کنید.
 
 == Changelog ==
+
+= 1.0.5 =
+
+* حذف پارامتر اختیاری order_id از درخواست ساخت پرداخت
+* پشتیبانی از Callback و Verify بدون order_id همراه با حفظ سازگاری سفارش‌های قدیمی
+* اصلاح تلاش مجدد کاربران مهمان پس از منقضی شدن لینک پرداخت
 
 = 1.0.4 =
 
