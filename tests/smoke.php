@@ -152,10 +152,11 @@ $check( is_wp_error( $gateway->calculate_payment_amount( new Ramzpal_Test_Order(
 $client = new Ramzpal_API_Client( 'opaque%key' );
 $ramzpal_test_http_response = array(
 	'status' => 200,
-	'body'   => '{"success":true,"payment_id":"pay_test","redirect_url":"https://ramzpal.com/pay/test"}',
+	'body'   => '{"data":{"success":true,"payment_id":"pay_test","redirect_url":"https://ramzpal.com/pay/test"}}',
 );
 $result = $client->create_payment( array( 'amount' => 10 ) );
 $check( ! is_wp_error( $result ) && 'pay_test' === $result['payment_id'], 'Successful API response was not parsed.' );
+$check( 'https://ramzpal.com/pay/test' === $result['redirect_url'], 'Nested API response was not normalized.' );
 $check( 'https://ramzpal.com/api/v1/payment/request' === $ramzpal_test_http_request['url'], 'Request endpoint is incorrect.' );
 $check( 'Bearer opaque%key' === $ramzpal_test_http_request['args']['headers']['Authorization'], 'Bearer header is incorrect.' );
 $check( 0 === strpos( $ramzpal_test_http_request['args']['headers']['Content-Type'], 'multipart/form-data; boundary=' ), 'Request is not multipart/form-data.' );

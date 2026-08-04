@@ -101,6 +101,8 @@ final class Ramzpal_API_Client {
 			);
 		}
 
+		$data = $this->normalize_response_data( $data );
+
 		$this->log(
 			'دریافت پاسخ API',
 			array(
@@ -122,6 +124,25 @@ final class Ramzpal_API_Client {
 					'message' => isset( $data['message'] ) ? sanitize_text_field( $data['message'] ) : '',
 				)
 			);
+		}
+
+		return $data;
+	}
+
+	/**
+	 * Unwrap the data envelope returned by the live RamzPal API.
+	 *
+	 * The public examples historically showed response fields at the root, so
+	 * both shapes remain supported for backwards compatibility.
+	 *
+	 * @param array $data Decoded API response.
+	 * @return array
+	 */
+	private function normalize_response_data( array $data ) {
+		if ( isset( $data['data'] ) && is_array( $data['data'] ) ) {
+			$nested = $data['data'];
+			unset( $data['data'] );
+			$data = array_replace( $data, $nested );
 		}
 
 		return $data;
