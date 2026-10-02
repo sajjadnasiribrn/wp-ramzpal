@@ -1,3 +1,9 @@
+# 1.0.6
+
+- Prepared directory metadata and external-service disclosures for WordPress.org.
+- Added official setup, privacy, pricing and source links.
+- Payment behavior is unchanged.
+
 # تغییرات
 
 ## 1.0.5 — 2026-08-04
