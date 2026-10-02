@@ -2,14 +2,14 @@
 Contributors: ramzpal
 Tags: woocommerce, payment gateway, usdt, tether, crypto payments
 Requires at least: 6.2
-Tested up to: 7.0
+Tested up to: 7.1
 Requires PHP: 7.4
 Requires Plugins: woocommerce
-Stable tag: 1.0.6
+Stable tag: 1.0.7
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
-درگاه پرداخت تتر رمزپال برای ووکامرس؛ با نصب ساده، تنظیمات فارسی و پشتیبانی از نسخه‌های جدید ووکامرس.
+Accept USDT payments through Ramzpal in WooCommerce, with Persian settings, payment verification and support for classic and block checkout.
 
 == Description ==
 
@@ -23,21 +23,17 @@ The plugin is free and open source. A Ramzpal merchant account and payment credi
 * [Source code and issue tracker](https://github.com/sajjadnasiribrn/wp-ramzpal)
 * [Pricing and settlement](https://ramzpal.com/pricing)
 
-= راهنمای فارسی =
+= Features =
 
-با این افزونه مشتری می‌تواند مبلغ سفارش را با تتر پرداخت کند. پس از ثبت سفارش، مشتری به صفحه رمزپال می‌رود و بعد از پرداخت به فروشگاه برمی‌گردد. افزونه نتیجه را بررسی می‌کند و وضعیت سفارش را خودکار به‌روز نگه می‌دارد.
+* Accept USDT on BNB Smart Chain (BEP20).
+* Support classic checkout, Checkout Blocks and HPOS.
+* Convert store prices to USDT using a merchant-defined fixed rate.
+* Choose Persian, English or Arabic for the hosted payment page.
+* Use Persian gateway settings and optional technical logs.
 
-امکانات اصلی:
+The final payment amount must be between 1 and 5,000 USDT. For stores priced in toman, rial or another currency, enter the price of one USDT in the gateway settings and keep it up to date.
 
-* پرداخت USDT روی شبکه BEP20
-* پشتیبانی از صفحه پرداخت کلاسیک و Checkout Blocks
-* سازگاری با HPOS
-* تبدیل مبلغ با نرخ ثابت برای واحدهای غیر USDT
-* رابط و راهنمای فارسی
-* زبان پرداخت فارسی، انگلیسی یا عربی
-* گزارش فنی اختیاری برای پیدا کردن خطاها
-
-مبلغ نهایی پرداخت باید بین ۱ تا ۵۰۰۰ تتر باشد. اگر قیمت محصولات با تومان، ریال یا واحد دیگری ثبت شده، کافی است قیمت یک تتر را در تنظیمات درگاه وارد کنید.
+Persian setup instructions are available on the [official setup page](https://ramzpal.com/woocommerce-usdt).
 
 == External services ==
 
@@ -53,38 +49,41 @@ The customer leaves the store to complete payment on Ramzpal's hosted payment pa
 
 == Installation ==
 
-1. فایل ZIP افزونه را از پیشخوان وردپرس بارگذاری و فعال کنید.
-2. به «ووکامرس ← پیکربندی ← پرداخت‌ها ← رمزپال» بروید.
-3. وارد پنل رمزپال شوید، یک پذیرنده بسازید و API Key آن را از بخش مدیریت پذیرنده‌ها کپی کنید.
-4. فقط خود API Key را در فیلد «کلید API» وارد کنید.
-5. روش محاسبه مبلغ را انتخاب و درگاه را فعال کنید.
-6. یک خرید کم‌مبلغ را از ابتدا تا صفحه سفارش موفق آزمایش کنید.
+1. Install and activate WooCommerce, then upload and activate this plugin.
+2. Go to WooCommerce > Settings > Payments > Ramzpal.
+3. Sign in to Ramzpal, create a merchant and copy its API key from merchant management.
+4. Paste only the API key into the API key field.
+5. Choose the amount calculation mode, enter a conversion rate if needed and enable the gateway.
+6. Test a small payment from checkout through payment confirmation before accepting customer payments.
 
 == Frequently Asked Questions ==
 
-= کلید API را از کجا دریافت کنم؟ =
+= Where do I get an API key? =
 
-پس از ورود به پنل رمزپال، کلید هر پذیرنده در بخش مدیریت پذیرنده‌ها در دسترس است.
+After signing in to Ramzpal, each merchant's key is available in merchant management. If you do not have a merchant yet, create one at https://ramzpal.com/profile/merchant/create.
 
-فقط خود API Key را در تنظیمات وارد کنید. اگر هنوز پذیرنده ندارید، ابتدا از نشانی https://ramzpal.com/profile/merchant/create یک پذیرنده بسازید.
+= Do I need to register a callback URL? =
 
-= لازم است آدرس بازگشت را جایی ثبت کنم؟ =
+No. The plugin builds the callback URL and sends it with the payment request.
 
-خیر. افزونه آدرس بازگشت را خودکار می‌سازد و همراه درخواست پرداخت می‌فرستد.
+= Can I use a store priced in toman or rial? =
 
-= فروشگاه من تومان یا ریال است؛ آیا افزونه کار می‌کند؟ =
+Yes. Select the fixed-rate conversion mode and enter the price of one USDT in your store's currency. Update this value whenever your chosen rate changes.
 
-بله. حالت «تبدیل با نرخ ثابت» را انتخاب کنید و قیمت یک تتر را بر اساس واحد فروشگاه وارد کنید. هر زمان نرخ تغییر کرد، این عدد را هم به‌روز کنید.
+= Why is the gateway missing at checkout? =
 
-= چرا درگاه در تسویه‌حساب دیده نمی‌شود؟ =
+Check that the gateway is enabled, an API key is present and the currency or conversion rate is configured correctly. The final amount must be between 1 and 5,000 USDT.
 
-فعال بودن درگاه، وجود کلید API و تنظیم درست واحد پول/نرخ تبدیل را بررسی کنید. مبلغ نهایی نیز باید بین ۱ تا ۵۰۰۰ USDT باشد.
+= Where can I find logs? =
 
-= لاگ‌ها کجا هستند؟ =
-
-پس از فعال کردن گزارش فنی، در «ووکامرس ← وضعیت ← گزارش‌ها» منبع ramzpal را انتخاب کنید.
+Enable technical logging in the gateway settings, then open WooCommerce > Status > Logs and select the ramzpal source.
 
 == Changelog ==
+
+= 1.0.7 =
+
+* Provide the directory readme in English, with a link to Persian setup instructions.
+* Test plugin registration and settings on WordPress 7.1 and WooCommerce 11.1.
 
 = 1.0.6 =
 
@@ -95,31 +94,29 @@ The customer leaves the store to complete payment on Ramzpal's hosted payment pa
 
 = 1.0.5 =
 
-* حذف پارامتر اختیاری order_id از درخواست ساخت پرداخت
-* پشتیبانی از Callback و Verify بدون order_id همراه با حفظ سازگاری سفارش‌های قدیمی
-* اصلاح تلاش مجدد کاربران مهمان پس از منقضی شدن لینک پرداخت
+* Remove the optional order_id field from new payment requests.
+* Support callbacks and verification without order_id while preserving older orders.
+* Fix guest payment retries after the payment link expires.
 
 = 1.0.4 =
 
-* سخت‌گیری امنیتی در اعتبارسنجی Callback و تطبیق کلید، شناسه پرداخت و شناسه سفارش
-* اصلاح پردازش پیام سفارش تکراری API رمزپال
+* Validate callback order keys, payment IDs and order IDs.
+* Handle the duplicate-order response from the Ramzpal API.
 
 = 1.0.3 =
 
-* اصلاح خواندن لینک پرداخت از پوشش data در پاسخ واقعی API رمزپال
+* Read the payment redirect URL from the API response's data object.
 
 = 1.0.2 =
 
-* اصلاح ارسال درخواست ساخت و تأیید پرداخت با فرمت multipart/form-data مورد انتظار API رمزپال
+* Send payment requests and verification as multipart/form-data, as required by the API.
 
 = 1.0.1 =
 
-* بازنویسی توضیحات و راهنمای نصب با لحن ساده‌تر
-* ساده‌تر شدن متن تنظیمات درگاه و صفحه پرداخت
+* Simplify the setup instructions, gateway settings and checkout copy.
 
 = 1.0.0 =
 
-* انتشار نخست
-* اتصال Request و Verify به API رمزپال
-* Checkout کلاسیک، Checkout Blocks و HPOS
-* تبدیل مبلغ، زبان پرداخت، پیام‌های قابل تنظیم و لاگ امن
+* Initial release with Request and Verify API integration.
+* Support classic checkout, Checkout Blocks and HPOS.
+* Add amount conversion, payment-page languages, configurable messages and safe logging.

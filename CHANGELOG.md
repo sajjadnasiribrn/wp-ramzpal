@@ -1,3 +1,9 @@
+# 1.0.7
+
+- English directory readme with a link to the Persian setup guide.
+- Compatibility smoke check on WordPress 7.1 / WooCommerce 11.1.
+- No changes to payment behavior.
+
 # 1.0.6
 
 - Prepared directory metadata and external-service disclosures for WordPress.org.
