@@ -3,7 +3,7 @@
  * Plugin Name: Ramzpal Payment Gateway for WooCommerce
  * Plugin URI: https://ramzpal.com/developers/wordpress-plugin
  * Description: درگاه پرداخت تتر رمزپال برای ووکامرس، با نصب ساده و تنظیمات فارسی.
- * Version: 1.0.6
+ * Version: 1.0.7
  * Author: RamzPal
  * Author URI: https://ramzpal.com
  * Text Domain: ramzpal-payment-gateway-for-woocommerce
@@ -11,7 +11,7 @@
  * Requires PHP: 7.4
  * Requires Plugins: woocommerce
  * WC requires at least: 7.6
- * WC tested up to: 10.9
+ * WC tested up to: 11.1
  * License: GPL-3.0-or-later
  * License URI: https://www.gnu.org/licenses/gpl-3.0.html
  *
@@ -20,7 +20,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'RAMZPAL_WC_VERSION', '1.0.6' );
+define( 'RAMZPAL_WC_VERSION', '1.0.7' );
 define( 'RAMZPAL_WC_FILE', __FILE__ );
 define( 'RAMZPAL_WC_PATH', plugin_dir_path( __FILE__ ) );
 define( 'RAMZPAL_WC_URL', plugin_dir_url( __FILE__ ) );
