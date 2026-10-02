@@ -1,17 +1,29 @@
-=== درگاه پرداخت رمزپال برای ووکامرس ===
+=== Ramzpal Payment Gateway for WooCommerce ===
 Contributors: ramzpal
-Tags: woocommerce, payment gateway, cryptocurrency, usdt, tether, رمزپال, تتر
+Tags: woocommerce, payment gateway, usdt, tether, crypto payments
 Requires at least: 6.2
 Tested up to: 7.0
 Requires PHP: 7.4
 Requires Plugins: woocommerce
-Stable tag: 1.0.5
+Stable tag: 1.0.6
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
 درگاه پرداخت تتر رمزپال برای ووکامرس؛ با نصب ساده، تنظیمات فارسی و پشتیبانی از نسخه‌های جدید ووکامرس.
 
 == Description ==
+
+Accept USDT payments on BNB Smart Chain (BEP20) in your WooCommerce store with Ramzpal. Customers pay on the hosted payment page, and the plugin verifies the payment with Ramzpal before marking the order as paid.
+
+The plugin is free and open source. A Ramzpal merchant account and payment credits are required to use the payment service. The service has a fixed charge per successful payment; see the current pricing before enabling the gateway.
+
+* [Official website](https://ramzpal.com/)
+* [Plugin download and setup](https://ramzpal.com/developers/wordpress-plugin)
+* [API documentation](https://ramzpal.com/developers/docs)
+* [Source code and issue tracker](https://github.com/sajjadnasiribrn/wp-ramzpal)
+* [Pricing and settlement](https://ramzpal.com/pricing)
+
+= راهنمای فارسی =
 
 با این افزونه مشتری می‌تواند مبلغ سفارش را با تتر پرداخت کند. پس از ثبت سفارش، مشتری به صفحه رمزپال می‌رود و بعد از پرداخت به فروشگاه برمی‌گردد. افزونه نتیجه را بررسی می‌کند و وضعیت سفارش را خودکار به‌روز نگه می‌دارد.
 
@@ -26,6 +38,18 @@ License URI: https://www.gnu.org/licenses/gpl-3.0.html
 * گزارش فنی اختیاری برای پیدا کردن خطاها
 
 مبلغ نهایی پرداخت باید بین ۱ تا ۵۰۰۰ تتر باشد. اگر قیمت محصولات با تومان، ریال یا واحد دیگری ثبت شده، کافی است قیمت یک تتر را در تنظیمات درگاه وارد کنید.
+
+== External services ==
+
+This plugin connects to the Ramzpal payment service at https://ramzpal.com. The connection is needed to create and verify a USDT payment. It is used when a customer selects this gateway at checkout, when the payment callback is processed, and when an unpaid order is rechecked on its order-received page. Enabling the plugin alone does not create a payment.
+
+To create a payment, the plugin sends the USDT amount, the store callback URL and the payment-page language to /api/v1/payment/request. The callback URL includes the WooCommerce order ID and order key so the payment can be matched to the order. To verify it, the plugin sends the payment ID and expected amount to /api/v1/payment/verify. Requests authenticate with the merchant API key and include the store URL in the HTTP User-Agent. The plugin does not send customer names, email addresses, billing addresses or wallet private keys in its default payment payload. Custom code that uses the plugin's filters may change that payload.
+
+The customer leaves the store to complete payment on Ramzpal's hosted payment page. Ramzpal receives payment and network data as described in its privacy notice. Blockchain transfers are public and cannot normally be reversed.
+
+* [Service terms](https://ramzpal.com/terms)
+* [Privacy notice](https://ramzpal.com/privacy)
+* [Security and asset custody](https://ramzpal.com/security)
 
 == Installation ==
 
@@ -61,6 +85,13 @@ License URI: https://www.gnu.org/licenses/gpl-3.0.html
 پس از فعال کردن گزارش فنی، در «ووکامرس ← وضعیت ← گزارش‌ها» منبع ramzpal را انتخاب کنید.
 
 == Changelog ==
+
+= 1.0.6 =
+
+* Clarify the external payment service, transmitted fields, privacy and pricing.
+* Add official website, setup, documentation and source links.
+* Use an English directory name and five focused tags; the gateway settings remain in Persian.
+
 
 = 1.0.5 =
 

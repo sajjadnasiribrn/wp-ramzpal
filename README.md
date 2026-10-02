@@ -1,4 +1,10 @@
-# درگاه پرداخت رمزپال برای ووکامرس
+# Ramzpal Payment Gateway for WooCommerce
+
+Accept USDT (BEP20) in WooCommerce with the official Ramzpal integration.
+
+[Official website](https://ramzpal.com) · [Download and setup](https://ramzpal.com/developers/wordpress-plugin) · [API documentation](https://ramzpal.com/developers/docs) · [Pricing](https://ramzpal.com/pricing)
+
+## راهنمای فارسی
 
 با این افزونه می‌توانید پرداخت با تتر را به فروشگاه ووکامرسی خود اضافه کنید. مشتری برای پرداخت به صفحه رمزپال می‌رود و بعد از انجام تراکنش، نتیجه پرداخت و وضعیت سفارش به‌صورت خودکار در ووکامرس ثبت می‌شود.
 
